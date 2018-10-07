@@ -1,0 +1,32 @@
+plugins {
+    id 'java'
+}
+
+group 'com.simplyalec.servers'
+version '1.0-SNAPSHOT'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'com.simplyalec.servers.manager.Manager'
+    }
+}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+    //Fix netty-socketio !!
+    // https://mvnrepository.com/artifact/ch.qos.logback/logback-classic
+    compile group: 'ch.qos.logback', name: 'logback-classic', version: '0.9.26'
+    // https://mvnrepository.com/artifact/com.corundumstudio.socketio/netty-socketio
+    compile group: 'com.corundumstudio.socketio', name: 'netty-socketio', version: '1.6.2'
+    // https://mvnrepository.com/artifact/com.googlecode.json-simple/json-simple
+    compile group: 'com.googlecode.json-simple', name: 'json-simple', version: '1.1.1'
+
+
+
+}
