@@ -1,4 +1,4 @@
-package com.simplyalec.servers.manager.ServerManager;
+package com.simplyalec.servers.manager.servermanager;
 
 import org.json.simple.JSONObject;
 

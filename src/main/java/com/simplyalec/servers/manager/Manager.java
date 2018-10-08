@@ -2,7 +2,7 @@ package com.simplyalec.servers.manager;
 
 import com.corundumstudio.socketio.*;
 import com.corundumstudio.socketio.listener.DataListener;
-import com.simplyalec.servers.manager.ServerManager.ServerFileManager;
+import com.simplyalec.servers.manager.servermanager.ServerFileManager;
 import com.simplyalec.servers.manager.util.Config;
 import com.simplyalec.servers.manager.util.Logger;
 import com.simplyalec.servers.manager.util.SocketObject;

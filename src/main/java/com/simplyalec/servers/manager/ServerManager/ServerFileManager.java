@@ -1,4 +1,4 @@
-package com.simplyalec.servers.manager.ServerManager;
+package com.simplyalec.servers.manager.servermanager;
 
 import com.simplyalec.servers.manager.util.Logger;
 import org.json.simple.JSONArray;

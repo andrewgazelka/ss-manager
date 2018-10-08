@@ -1,4 +1,4 @@
-package com.simplyalec.servers.manager.SocketCommands;
+package com.simplyalec.servers.manager.socketcommands;
 
 public class CommandManager {
 }

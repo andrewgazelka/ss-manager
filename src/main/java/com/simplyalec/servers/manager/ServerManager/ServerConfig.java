@@ -1,10 +1,6 @@
-package com.simplyalec.servers.manager.ServerManager;
+package com.simplyalec.servers.manager.servermanager;
 
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class ServerConfig {
 
