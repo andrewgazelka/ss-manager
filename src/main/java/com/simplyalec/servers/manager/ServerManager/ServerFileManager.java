@@ -6,49 +6,68 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.List;
 
 public class ServerFileManager {
 
+    private JSONParser parser;
+    private BufferedReader serversReader;
+    private BufferedWriter serversWriter;
     private Logger logger;
     private File serverFolder;
-    private File configFolder;
-    private File serversFile;
-    private ArrayList<ServerConfig> loadedConfigs;
-    private ArrayList<Server> servers;
+    private Path configFolder;
+    private Path serversFile;
+    private List<ServerConfig> loadedConfigs; // Use List<> instead of ArrayList<> for more abstraction
+    private List<Server> servers;
     private JSONObject serversJSON;
 
-    public ServerFileManager(String filePath) {
+    public ServerFileManager(Path serversPath) {
+
+        // TODO: a lot of the same code as Config. Let's fix this.
         logger = new Logger();
         loadedConfigs = new ArrayList<>();
         servers = new ArrayList<>();
 
         try {
-            File serversFolder = new File(filePath);
-            this.serverFolder = serversFolder;
-            if(serversFolder.exists() && serversFolder.isDirectory()){
-            }else{
-                serversFolder.mkdir();
-            }
-            File configs = new File(this.serverFolder.getAbsolutePath() + "/configs/");
-            configFolder = configs;
-            if(!(configs.exists() && configs.isDirectory())){
-                configs.mkdir();
-            }
-            File servers = new File(this.serverFolder.getAbsolutePath() + "/servers.json");
-            serversFile = servers;
-            if (servers.isFile() && servers.canRead() && verifyServers()) {
-                logger.log(Logger.Level.DEBUG, "Loaded servers.json!");
-            } else {
-                logger.log(Logger.Level.DEBUG, "Creating empty servers.json file.");
+
+
+            Files.createDirectories(serversPath);
+
+            configFolder = serversPath.relativize(Paths.get("configs"));
+            Files.createDirectories(configFolder);
+
+            serversFile = serversPath.relativize(Paths.get("server.json"));
+
+            parser = new JSONParser();
+
+            if (!Files.exists(serversPath)) {
+                logger.log(Logger.Level.WARN, "Config not found. Generating one for you!");
+                Files.createFile(serversPath);
                 writeDefaultServers();
             }
-            JSONParser parser = new JSONParser();
-            serversJSON = (JSONObject)parser.parse(new FileReader(this.serversFile));
+
+            if (!Files.isReadable(serversPath)) {
+                logger.log(Logger.Level.ERR, String.format("Config file {%s} is not readable. Try recreating it", serversPath.toAbsolutePath()));
+                System.exit(0);
+            }
+
+            serversReader = Files.newBufferedReader(serversPath);
+            serversWriter = Files.newBufferedWriter(serversPath);
+
+            serversJSON = (JSONObject) parser.parse(serversReader);
+
+            if (verifyServers()) {
+                logger.log(Logger.Level.DEBUG, "Loaded servers.json!");
+            } else {
+                logger.log(Logger.Level.ERR, "servers.json can not be verified. Try making sure the file is readable and has the correct syntax.");
+                System.exit(0);
+            }
+
             loadServers();
             loadConfigs();
         } catch (Exception ex) { //Just catch them all.
@@ -58,44 +77,41 @@ public class ServerFileManager {
         }
     }
 
-    private void createNew(String name){
+    public void close() throws IOException {
+        serversWriter.close();
+        serversReader.close();
+    }
+
+    private void createNew(String name) {
 
     }
 
-    private ServerConfig findConfig(String name){
-        for(ServerConfig config :loadedConfigs){
-            if(config.getName().equals(name))
+    private ServerConfig findConfig(String name) {
+        for (ServerConfig config : loadedConfigs) {
+            if (config.getName().equals(name))
                 return config;
         }
         return null;
     }
 
-    private void writeDefaultServers() throws IOException{
+    private void writeDefaultServers() throws IOException {
         JSONObject servers = new JSONObject();
         servers.put("servers", new JSONArray());
-        FileWriter file = new FileWriter(serversFile);
-        file.write(servers.toJSONString());
-        file.close();
 
+        serversWriter.write(servers.toJSONString());
     }
 
-    private boolean verifyServers() throws IOException {
-        JSONParser parser = new JSONParser();
-        try {
-            JSONObject test = (JSONObject)parser.parse(new FileReader(serversFile));
-        }catch (ParseException e){
-            return false;
-        }
+    private boolean verifyServers() {
         return true;
 
     }
 
-    private void loadServers() throws IOException, ParseException{
+    private void loadServers() throws IOException, ParseException {
         JSONParser parser = new JSONParser();
 
-        JSONObject obj = (JSONObject) parser.parse(new FileReader(serversFile));
+        JSONObject obj = (JSONObject) parser.parse(serversReader);
         serversJSON = obj;
-        JSONArray serversArr = (JSONArray)obj.get("servers");
+        JSONArray serversArr = (JSONArray) obj.get("servers");
 
         for (int i = 0; i < serversArr.size(); i++) {
             servers.add(new Server(new File(serverFolder.getAbsoluteFile() + "/" + serversArr.get(i))));
@@ -103,26 +119,34 @@ public class ServerFileManager {
         }
     }
 
-    private void loadConfigs(){
-        File[] dirListing = configFolder.listFiles();
-        JSONParser parser = new JSONParser();
+    private void loadConfigs() {
+        try {
+            Files
+                    .list(configFolder)
+                    .forEach(child -> {
+                        JSONParser parser = new JSONParser();
+                        BufferedReader reader = null;
+                        try {
+                            reader = Files.newBufferedReader(child);
+                            JSONObject config = (JSONObject) parser.parse(reader);
 
-        for(File child : dirListing){
-            try {
-                JSONObject config = (JSONObject)parser.parse(new FileReader(child));
+                            if (config.get("name") == null || config.get("launchOptions") == null || config.get("url") == null || config.get("stopCommand") == null || config.get("start") == null) {
+                                logger.log(Logger.Level.WARN, "Invalid config file '" + child.toAbsolutePath() + "'. Skipping.");
+                                reader.close();
+                                return;
+                            }
 
-                if(config.get("name") == null || config.get("launchOptions") == null || config.get("url") == null || config.get("stopCommand") == null || config.get("start") == null){
-                    logger.log(Logger.Level.WARN, "Invalid config file '" + child.getPath() + "'. Skipping.");
-                    return;
-                }
-
-                loadedConfigs.add(new ServerConfig(config));
-                logger.log(Logger.Level.INFO, "Loaded server config '" + child.getPath() + "'.");
-            }catch (Exception e){
-                e.printStackTrace();
-                logger.log(Logger.Level.WARN, "Failed to read config '" + child.getPath() + "'. Skipping.");
-                return;
-            }
+                            loadedConfigs.add(new ServerConfig(config));
+                            logger.log(Logger.Level.INFO, "Loaded server config '" + child.toAbsolutePath() + "'.");
+                            reader.close();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            logger.log(Logger.Level.WARN, "Failed to read config '" + child.toAbsolutePath() + "'. Skipping.");
+                            return;
+                        }
+                    });
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }

@@ -4,6 +4,20 @@ import org.json.simple.JSONObject;
 
 public class ServerConfig {
 
+    private String name;
+    private String launchOptions;
+    private String url;
+    private String stopCommand;
+    private String start;
+
+    public ServerConfig(String name, String launchOptions, String url, String stopCommand, String start){
+        this.name = name;
+        this.launchOptions = launchOptions;
+        this.url = url;
+        this.stopCommand = stopCommand;
+        this.start = start;
+    }
+
     public String getName() {
         return name;
     }
@@ -41,20 +55,6 @@ public class ServerConfig {
     }
 
     public void setStart(String start) {
-        this.start = start;
-    }
-
-    private String name;
-    private String launchOptions;
-    private String url;
-    private String stopCommand;
-    private String start;
-
-    public ServerConfig(String name, String launchOptions, String url, String stopCommand, String start){
-        this.name = name;
-        this.launchOptions = launchOptions;
-        this.url = url;
-        this.stopCommand = stopCommand;
         this.start = start;
     }
 

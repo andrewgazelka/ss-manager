@@ -4,10 +4,14 @@ public class Logger {
     public enum Level{
         ERR ("ERR"), DEBUG ("DEBUG"), INFO ("INFO"), WARN ("WARN");
 
-        String level;
+        private String level;
 
         Level(String level){
             this.level = level;
+        }
+
+        public String getLevel() {
+            return level;
         }
     }
 
