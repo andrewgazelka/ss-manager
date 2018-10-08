@@ -45,19 +45,19 @@ public class ServerFileManager {
 
             parser = new JSONParser();
 
-            if (!Files.exists(serversPath)) {
+            if (!Files.exists(serversFile)) {
                 logger.log(Logger.Level.WARN, "Config not found. Generating one for you!");
-                Files.createFile(serversPath);
+                Files.createFile(serversFile);
                 writeDefaultServers();
             }
 
-            if (!Files.isReadable(serversPath)) {
-                logger.log(Logger.Level.ERR, String.format("Config file {%s} is not readable. Try recreating it", serversPath.toAbsolutePath()));
+            if (!Files.isReadable(serversFile)) {
+                logger.log(Logger.Level.ERR, String.format("Config file {%s} is not readable. Try recreating it", serversFile.toAbsolutePath()));
                 System.exit(0);
             }
 
-            serversReader = Files.newBufferedReader(serversPath);
-            serversWriter = Files.newBufferedWriter(serversPath);
+            serversReader = Files.newBufferedReader(serversFile);
+            serversWriter = Files.newBufferedWriter(serversFile);
 
             serversJSON = (JSONObject) parser.parse(serversReader);
 
