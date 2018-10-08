@@ -44,22 +44,16 @@ public class Manager {
         Configuration sIOConfig = new Configuration();
         sIOConfig.setHostname("localhost");
         sIOConfig.setPort(config.getInt("port"));
-        sIOConfig.setAuthorizationListener(new AuthorizationListener() {
-            @Override
-            public boolean isAuthorized(HandshakeData data) {
-                String token = data.getSingleUrlParam("token");
-                if (token == null) //They might not even have a token.
-                    return false;
-                return token.equals(config.getString("token"));
-            }
+        sIOConfig.setAuthorizationListener(data -> {
+            String token = data.getSingleUrlParam("token");
+            if (token == null) //They might not even have a token.
+                return false;
+            return token.equals(config.getString("token"));
         });
         final SocketIOServer server = new SocketIOServer(sIOConfig);
-        server.addEventListener("chatevent", SocketObject.class, new DataListener<SocketObject>() {
-            @Override
-            public void onData(SocketIOClient client, SocketObject data, AckRequest ackRequest) {
-                // broadcast messages to all clients
-                server.getBroadcastOperations().sendEvent("chatevent", data);
-            }
+        server.addEventListener("chatevent", SocketObject.class, (client, data, ackRequest) -> {
+            // broadcast messages to all clients
+            server.getBroadcastOperations().sendEvent("chatevent", data);
         });
 
         server.start();

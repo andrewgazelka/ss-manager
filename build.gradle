@@ -15,6 +15,9 @@ jar {
     manifest {
         attributes 'Main-Class': 'com.simplyalec.servers.manager.Manager'
     }
+    from {
+        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+    }
 }
 
 dependencies {
