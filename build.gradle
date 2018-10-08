@@ -21,9 +21,12 @@ dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
     //Fix netty-socketio !!
     // https://mvnrepository.com/artifact/ch.qos.logback/logback-classic
-    compile group: 'ch.qos.logback', name: 'logback-classic', version: '0.9.26'
+    //compile group: 'ch.qos.logback', name: 'logback-classic', version: '0.9.26' //Logging
+    // https://mvnrepository.com/artifact/org.slf4j/slf4j-nop
+    compile group: 'org.slf4j', name: 'slf4j-nop', version: '1.6.4' //No logging
+
     // https://mvnrepository.com/artifact/com.corundumstudio.socketio/netty-socketio
-    compile group: 'com.corundumstudio.socketio', name: 'netty-socketio', version: '1.6.2'
+    compile group: 'com.corundumstudio.socketio', name: 'netty-socketio', version: '1.7.12'
     // https://mvnrepository.com/artifact/com.googlecode.json-simple/json-simple
     compile group: 'com.googlecode.json-simple', name: 'json-simple', version: '1.1.1'
 

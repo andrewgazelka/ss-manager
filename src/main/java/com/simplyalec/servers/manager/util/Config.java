@@ -9,35 +9,40 @@ import java.util.UUID;
 
 public class Config {
 
-    private File config;
+    private File configFile; //The actual Java file
     private Logger logger;
+    private JSONObject config; //The parsed JSON from the config.
+    //I know, bad naming!
 
     public Config(String filePath) {
         logger = new Logger();
 
         try {
             File f = new File(filePath);
-            this.config = f;
+            this.configFile = f;
             if (f.isFile() && f.canRead() && verifyConfig()) {
                 logger.log(Logger.Level.DEBUG, "Loaded config!");
             } else {
                 logger.log(Logger.Level.WARN, "Config not found. Generating one for you!");
                 writeDefaultConfig();
-
             }
-        } catch (IOException ex) {
+            JSONParser parser = new JSONParser();
+            config = (JSONObject)parser.parse(new FileReader(configFile));
+        } catch (Exception ex) { //Just catch them all.
             ex.printStackTrace();
-            logger.log(Logger.Level.ERR, "Failed to read/modify config.");
+            logger.log(Logger.Level.ERR, "Failed to read/modify config. Try deleting it and letting SS Manager create a new one.");
             System.exit(0);
         }
     }
 
     private void writeDefaultConfig() throws IOException{
         JSONObject settings = new JSONObject();
-        settings.put("token", UUID.randomUUID().toString()); //TODO is this ok? It should be!
+        //Strange warning is strange. Maybe I'm doing something wrong. But it should not cause issues.
+        settings.put("token", UUID.randomUUID().toString());
+        settings.put("port", 6969);
         logger.log(Logger.Level.INFO, "Check your config to find your auto-generated secret token.");
 
-        FileWriter file = new FileWriter(config);
+        FileWriter file = new FileWriter(configFile);
         file.write(settings.toJSONString());
         file.close();
     }
@@ -45,7 +50,12 @@ public class Config {
     private boolean verifyConfig() throws IOException{
         JSONParser parser = new JSONParser();
         try {
-            Object test = parser.parse(new FileReader(config));
+            JSONObject test = (JSONObject)parser.parse(new FileReader(configFile));
+            //Check for all required keys
+            if(test.get("token") == null
+                    || test.get("port") == null){
+                return false;
+            }
         }catch (ParseException e){
             return false;
         }
@@ -53,8 +63,16 @@ public class Config {
 
     }
 
-    public String getValue(String value){
-        return "asd";
+    public String getString(String value){
+        return config.get(value).toString();
+    }
+    public Integer getInt(String value){
+        try {
+            return Integer.parseInt(config.get(value).toString());
+        }catch (NumberFormatException e){
+            logger.log(Logger.Level.ERR, "Malformed config integer value detected. Defaulting to 0.");
+            return 0;
+        }
     }
 
 }
