@@ -77,7 +77,7 @@ public class Config {
         writer.write(settings.toJSONString());
     }
 
-    private boolean verifyConfig() throws IOException {
+    private boolean verifyConfig() {
 
         //Check for all required keys
         if (json.get("token") == null

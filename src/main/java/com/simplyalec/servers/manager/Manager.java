@@ -33,10 +33,11 @@ public class Manager {
         // Create hidden directory
         baseDirectory = Paths.get(homeDir, ".ss-manager");
 
-        configPath = baseDirectory.relativize(Paths.get("config.json"));
+        configPath = baseDirectory.resolve("config.json");
+
         config = new Config(configPath);
 
-        serverPath = baseDirectory.relativize(Paths.get("servers"));
+        serverPath = baseDirectory.resolve("servers");
         fileManager = new ServerFileManager(serverPath);
 
         //Setup Socket

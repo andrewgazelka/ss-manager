@@ -38,10 +38,10 @@ public class ServerFileManager {
 
             Files.createDirectories(serversPath);
 
-            configFolder = serversPath.relativize(Paths.get("configs"));
+            configFolder = serversPath.resolve("configs");
             Files.createDirectories(configFolder);
 
-            serversFile = serversPath.relativize(Paths.get("server.json"));
+            serversFile = serversPath.resolve("server.json");
 
             parser = new JSONParser();
 
