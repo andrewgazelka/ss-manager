@@ -8,6 +8,7 @@ import org.json.simple.parser.ParseException;
 
 import java.io.*;
 import java.nio.file.Files;
+import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -45,19 +46,25 @@ public class ServerFileManager {
 
             parser = new JSONParser();
 
-            if (!Files.exists(serversFile)) {
+            boolean newFile = !Files.exists(serversFile);
+            if (newFile) {
                 logger.log(Logger.Level.WARN, "Config not found. Generating one for you!");
                 Files.createFile(serversFile);
+            }
+
+            serversWriter = Files.newBufferedWriter(serversFile);
+
+            if(newFile)
+            {
                 writeDefaultServers();
             }
+
+            serversReader = Files.newBufferedReader(serversFile);
 
             if (!Files.isReadable(serversFile)) {
                 logger.log(Logger.Level.ERR, String.format("Config file {%s} is not readable. Try recreating it", serversFile.toAbsolutePath()));
                 System.exit(0);
             }
-
-            serversReader = Files.newBufferedReader(serversFile);
-            serversWriter = Files.newBufferedWriter(serversFile);
 
             serversJSON = (JSONObject) parser.parse(serversReader);
 
@@ -99,6 +106,7 @@ public class ServerFileManager {
         servers.put("servers", new JSONArray());
 
         serversWriter.write(servers.toJSONString());
+        serversWriter.flush();
     }
 
     private boolean verifyServers() {
@@ -107,11 +115,8 @@ public class ServerFileManager {
     }
 
     private void loadServers() throws IOException, ParseException {
-        JSONParser parser = new JSONParser();
 
-        JSONObject obj = (JSONObject) parser.parse(serversReader);
-        serversJSON = obj;
-        JSONArray serversArr = (JSONArray) obj.get("servers");
+        JSONArray serversArr = (JSONArray) serversJSON.get("servers");
 
         for (int i = 0; i < serversArr.size(); i++) {
             servers.add(new Server(new File(serverFolder.getAbsoluteFile() + "/" + serversArr.get(i))));

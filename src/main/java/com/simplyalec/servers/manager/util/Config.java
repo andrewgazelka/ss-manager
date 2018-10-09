@@ -28,19 +28,28 @@ public class Config {
 
             jsonParser = new JSONParser();
 
-            if (!Files.exists(filePath)) {
+
+            boolean newFile = !Files.exists(filePath);
+
+            if (newFile) {
                 logger.log(Logger.Level.WARN, "Config not found. Generating one for you!");
                 Files.createFile(filePath);
+            }
+
+            writer = Files.newBufferedWriter(filePath);
+
+            if(newFile)
+            {
                 writeDefaultConfig();
             }
+
+            reader = Files.newBufferedReader(filePath);
 
             if(!Files.isReadable(filePath))
             {
                 logger.log(Logger.Level.ERR, String.format("Config file {%s} is not readable. Try recreating it", filePath.toAbsolutePath()));
                 System.exit(0);
             }
-
-            reader = Files.newBufferedReader(filePath);
 
             json = (JSONObject) jsonParser.parse(reader);
 
@@ -50,11 +59,11 @@ public class Config {
                 logger.log(Logger.Level.ERR, "Config file can not be verified. Try making sure the file has the correct syntax.");
                 System.exit(0);
             }
-            writer = Files.newBufferedWriter(filePath);
 
             writer.close();
         } catch (IOException | ParseException e) {
-            logger.log(Logger.Level.ERR, "Failed to read/modify config. Try deleting it and letting SS Manager create a new one.");
+            logger.log(Logger.Level.ERR, String.format("Failed to read/modify %s. Try deleting it and letting SS Manager create a new one.", filePath.toAbsolutePath()));
+            e.printStackTrace();
             System.exit(0);
             e.printStackTrace();
         }
@@ -73,8 +82,6 @@ public class Config {
         logger.log(Logger.Level.INFO, "Check your config to find your auto-generated secret token.");
 
         Files.write(filePath, Collections.singleton(settings.toJSONString()));
-
-        writer.write(settings.toJSONString());
     }
 
     private boolean verifyConfig() {
